@@ -170,6 +170,28 @@
     .choice-emoji {
       font-size: 24px;
       line-height: 1;
+      flex-shrink: 0;
+    }
+    .choice-body {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      line-height: 1.2;
+    }
+    .choice-text {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .choice-hint {
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.55;
+      letter-spacing: 0.01em;
+    }
+    .choice-btn.correct .choice-hint,
+    .choice-btn.wrong .choice-hint {
+      opacity: 0.85;
     }
     .choice-btn.correct {
       background: #29A9E1;
@@ -340,7 +362,7 @@
     <div class="start-inner">
       <div class="start-emoji">🤖</div>
       <h1>AI или не AI?</h1>
-      <p>10 задач. Узнай, где ты теряешь время зря.</p>
+      <p>10 задач. Для каждой выбери, кто справится лучше: <b>полностью ИИ</b>, <b>полностью ты</b> или <b>вы вместе</b>.</p>
       <button class="btn-primary" onclick="startGame()">Поехали →</button>
     </div>
   </div>
@@ -492,9 +514,9 @@
     // МАППИНГ
     // ============================================================
     const labels = {
-      ai:       { text: "AI",     emoji: "🤖" },
-      me:       { text: "Я",      emoji: "🧠" },
-      together: { text: "Вместе", emoji: "🤝" }
+      ai:       { text: "AI",     emoji: "🤖", hint: "Полностью ИИ" },
+      me:       { text: "Я",      emoji: "🧠", hint: "Полностью я" },
+      together: { text: "Вместе", emoji: "🤝", hint: "Я + ИИ" }
     };
     const choiceOrder = ["ai", "me", "together"];
 
@@ -560,7 +582,7 @@
         const btn = document.createElement('button');
         btn.className = 'choice-btn';
         btn.setAttribute('data-key', key);
-        btn.innerHTML = `<span class="choice-emoji">${labels[key].emoji}</span><span class="choice-text">${labels[key].text}</span>`;
+        btn.innerHTML = `<span class="choice-emoji">${labels[key].emoji}</span><span class="choice-body"><span class="choice-text">${labels[key].text}</span><span class="choice-hint">${labels[key].hint}</span></span>`;
         btn.addEventListener('click', () => handleAnswer(key));
         choicesEl.appendChild(btn);
       });
