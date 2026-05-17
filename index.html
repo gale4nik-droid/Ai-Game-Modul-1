@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AI или не AI?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* === BASE === */
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --dark:  #0f1a1f;
+      --white: #ffffff;
+      --blue:  #29A9E1;
+      --red:   #E13329;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background-color: #0f1a1f;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      color: #ffffff;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    button {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* === SCREENS === */
+    .screen {
+      min-height: 100vh;
+      width: 100%;
+    }
+    .screen-start,
+    .screen-result {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .screen-game {
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 100px;
+    }
+
+    /* === START SCREEN === */
+    .start-inner {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .start-emoji {
+      font-size: 88px;
+      line-height: 1;
+      margin-bottom: 24px;
+      animation: gentleFloat 6s ease-in-out infinite;
+    }
+    .start-inner h1 {
+      font-weight: 900;
+      font-size: 40px;
+      line-height: 1.1;
+      color: #ffffff;
+      margin: 0 0 16px;
+      letter-spacing: -0.02em;
+    }
+    .start-inner p {
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.7);
+      margin: 0 0 32px;
+    }
+
+    /* === PROGRESS === */
+    .progress-track {
+      height: 6px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 0;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #29A9E1;
+      transition: width 0.4s ease;
+    }
+    .progress-label {
+      font-weight: 500;
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    /* === CARD === */
+    .card {
+      background: #ffffff;
+      border: 3px solid #0f1a1f;
+      box-shadow: 8px 8px 0 #0f1a1f;
+      border-radius: 4px;
+      padding: 28px 24px;
+      margin-bottom: 24px;
+    }
+    .task-badge {
+      display: inline-block;
+      background: #29A9E1;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 2px;
+      margin-bottom: 16px;
+    }
+    .task-text {
+      font-weight: 600;
+      font-size: 20px;
+      line-height: 1.5;
+      color: #0f1a1f;
+      margin: 0;
+    }
+
+    /* === CHOICES === */
+    .choices {
+      display: flex;
+      flex-direction: column;
+    }
+    .choice-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      min-height: 56px;
+      padding: 18px 20px;
+      background: #ffffff;
+      border: 3px solid #0f1a1f;
+      box-shadow: 4px 4px 0 #0f1a1f;
+      border-radius: 4px;
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      color: #0f1a1f;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s, background 0.15s, color 0.15s, border-color 0.15s;
+      text-align: left;
+    }
+    .choice-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #0f1a1f;
+    }
+    .choice-emoji {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .choice-btn.correct {
+      background: #29A9E1;
+      border-color: #29A9E1;
+      color: #ffffff;
+      box-shadow: 4px 4px 0 #0f1a1f;
+    }
+    .choice-btn.wrong {
+      background: #E13329;
+      border-color: #E13329;
+      color: #ffffff;
+      box-shadow: 4px 4px 0 #0f1a1f;
+    }
+    .choice-btn.disabled {
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    /* === DRAWER === */
+    .drawer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #ffffff;
+      border-top: 3px solid #0f1a1f;
+      padding: 24px 20px 40px;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 100;
+      max-width: 480px;
+      margin: 0 auto;
+      border-radius: 4px 4px 0 0;
+    }
+    .drawer.open {
+      transform: translateY(0);
+    }
+    .drawer-status {
+      font-weight: 700;
+      font-size: 22px;
+      color: #0f1a1f;
+      margin-bottom: 12px;
+    }
+    .drawer-explain {
+      font-weight: 500;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #0f1a1f;
+      margin: 0 0 20px;
+    }
+
+    /* === PRIMARY BUTTON === */
+    .btn-primary {
+      width: 100%;
+      padding: 18px;
+      background: #29A9E1;
+      border: 3px solid #ffffff;
+      box-shadow: 4px 4px 0 #ffffff;
+      border-radius: 4px;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 800;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn-primary:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #ffffff;
+    }
+    .btn-primary.btn-dark {
+      border-color: #0f1a1f;
+      box-shadow: 4px 4px 0 #0f1a1f;
+    }
+    .btn-primary.btn-dark:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #0f1a1f;
+    }
+
+    /* === RESULT === */
+    .result-inner {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .score-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .score-number {
+      display: inline-block;
+      font-weight: 900;
+      font-size: 96px;
+      line-height: 1;
+      color: #ffffff;
+      letter-spacing: -0.03em;
+    }
+    .score-label {
+      font-weight: 600;
+      font-size: 24px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+    }
+    .result-dots {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 8px 0 24px;
+    }
+    .dot {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin: 4px;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.25);
+    }
+    .dot.correct {
+      background: #29A9E1;
+      border-color: #29A9E1;
+    }
+    .result-phrase {
+      font-weight: 600;
+      font-size: 20px;
+      line-height: 1.4;
+      color: #ffffff;
+      text-align: center;
+      margin: 0 0 32px;
+      padding: 0 8px;
+    }
+
+    /* === ANIMATIONS === */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%      { transform: translateX(-8px); }
+      40%      { transform: translateX(8px); }
+      60%      { transform: translateX(-5px); }
+      80%      { transform: translateX(5px); }
+    }
+    @keyframes pulse {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: scale(0.5); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .animate-in { animation: fadeInUp 0.35s ease forwards; }
+    .card.shake { animation: shake 0.4s ease; }
+    .card.pulse { animation: pulse 0.3s ease; }
+  </style>
+</head>
+<body>
+
+  <!-- START -->
+  <div class="screen screen-start">
+    <div class="start-inner">
+      <div class="start-emoji">🤖</div>
+      <h1>AI или не AI?</h1>
+      <p>10 задач. Узнай, где ты теряешь время зря.</p>
+      <button class="btn-primary" onclick="startGame()">Поехали →</button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen screen-game" style="display:none">
+    <div class="game-inner">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-label" id="progress-label">1 / 10</div>
+
+      <div class="card" id="task-card">
+        <span class="task-badge">ЗАДАЧА</span>
+        <p class="task-text" id="task-text"></p>
+      </div>
+
+      <div class="choices" id="choices"></div>
+    </div>
+
+    <div class="drawer" id="drawer">
+      <div class="drawer-status" id="drawer-status"></div>
+      <p class="drawer-explain" id="drawer-explain"></p>
+      <button class="btn-primary btn-dark" onclick="nextCase()">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen screen-result" style="display:none">
+    <div class="result-inner">
+      <div class="score-block">
+        <span class="score-number" id="score-number">0</span>
+        <span class="score-label">из 10</span>
+      </div>
+      <div class="result-dots" id="result-dots"></div>
+      <p class="result-phrase" id="result-phrase"></p>
+      <button class="btn-primary" onclick="startGame()">Сыграть ещё раз</button>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // ДАННЫЕ
+    // ============================================================
+    const allCases = [
+      {
+        task: "Законспектировать Zoom-созвон с командой на 1 час",
+        correct: "ai",
+        explain: "NotebookLM делает это за 2 минуты. Классическая рутина — настроил один раз, забыл."
+      },
+      {
+        task: "Написать первый ответ недовольному клиенту",
+        correct: "together",
+        explain: "AI пишет черновик, ты корректируешь тон. Отношения с клиентом — твоя территория."
+      },
+      {
+        task: "Решить: уволить ли менеджера после плохого квартала",
+        correct: "me",
+        explain: "AI может структурировать аргументы, но решение про человека — только твоё. Всегда."
+      },
+      {
+        task: "Найти 5 поставщиков мебели в Европе по параметрам проекта",
+        correct: "ai",
+        explain: "Perplexity ищет с источниками, фильтрует по стилю и размерам. Ты только смотришь результат."
+      },
+      {
+        task: "Подготовить черновик бизнес-кейса для инвестора",
+        correct: "together",
+        explain: "AI строит структуру и первый драфт, ты добавляешь цифры и стратегию."
+      },
+      {
+        task: "Посчитать точную юнит-экономику продукта",
+        correct: "together",
+        explain: "AI помогает со структурой, но все цифры проверяешь сам. AI галлюцинирует в математике."
+      },
+      {
+        task: "Каждое утро — дайджест новостей по рынку фитнеса",
+        correct: "ai",
+        explain: "Настроил Perplexity один раз — получаешь дайджест автоматически каждое утро."
+      },
+      {
+        task: "Придумать стратегию выхода в новый город",
+        correct: "together",
+        explain: "AI как компаньон: ты накидываешь идеи, он подсвечивает слабые места и предлагает альтернативы."
+      },
+      {
+        task: "Составить ведомость материалов из PDF-планов квартиры",
+        correct: "ai",
+        explain: "Загружаешь PDF — получаешь таблицу с позициями и габаритами. Ты проверяешь глазом эксперта."
+      },
+      {
+        task: "Написать регламент работы для нового сотрудника",
+        correct: "ai",
+        explain: "Загружаешь Zoom-созвоны в NotebookLM — он генерирует регламент из реальных разговоров."
+      },
+      {
+        task: "Есть фото с корпоратива. Хочешь в соцсети, но выглядишь уставшим",
+        correct: "ai",
+        explain: "Midjourney или Ideogram улучшат фото, уберут усталость, сделают свет. Ретушёру — только финальную версию."
+      },
+      {
+        task: "Нужно записать голосовое партнёру, но не знаешь как начать",
+        correct: "together",
+        explain: "Диктуешь мысли в Wispr Flow, ChatGPT помогает структурировать. Голос записываешь сам."
+      },
+      {
+        task: "Получил контракт на 40 страниц от юриста. Встреча через час",
+        correct: "ai",
+        explain: "Загружаешь в Claude, просишь выделить ключевые условия и красные флаги. Юрист потом подтверждает."
+      },
+      {
+        task: "Хочешь придумать название для нового продукта. В голове пусто",
+        correct: "together",
+        explain: "AI генерирует 50 вариантов за минуту по твоим критериям. Ты выбираешь и докручиваешь лучшие."
+      },
+      {
+        task: "Едешь в такси и в голову пришла классная бизнес-идея",
+        correct: "ai",
+        explain: "Открываешь Wispr Flow, надиктовываешь голосом — ChatGPT сразу структурирует и задаёт вопросы. Идея не потеряется."
+      },
+      {
+        task: "Сотрудник прислал отчёт на 3 страницы. Надо ответить по делу",
+        correct: "together",
+        explain: "AI суммаризирует отчёт и предлагает 3 варианта ответа. Ты выбираешь тон и отправляешь."
+      },
+      {
+        task: "Хочешь сделать презентацию для клиента, но дизайнер занят",
+        correct: "ai",
+        explain: "Claude строит структуру, Gamma.app делает визуал автоматически. За час — готовый черновик."
+      },
+      {
+        task: "Клиент написал негативный отзыв публично. Надо ответить быстро",
+        correct: "together",
+        explain: "AI пишет 3 варианта в разном тоне. Ты выбираешь и добавляешь личное. Отправляешь сам — это репутация."
+      },
+      {
+        task: "Хочешь узнать всё о конкуренте перед важными переговорами",
+        correct: "ai",
+        explain: "Perplexity Deep Research за 5 минут собирает всё: выручка, продукты, слабые места, последние новости."
+      },
+      {
+        task: "Написал важное сообщение партнёру. Хочешь проверить — не обидел ли",
+        correct: "together",
+        explain: "Вставляешь в Claude: «Как это звучит со стороны получателя?» Он укажет на острые углы до отправки."
+      }
+    ];
+
+    // ============================================================
+    // МАППИНГ
+    // ============================================================
+    const labels = {
+      ai:       { text: "AI",     emoji: "🤖" },
+      me:       { text: "Я",      emoji: "🧠" },
+      together: { text: "Вместе", emoji: "🤝" }
+    };
+    const choiceOrder = ["ai", "me", "together"];
+
+    // ============================================================
+    // ФРАЗЫ ПОД ИТОГ
+    // ============================================================
+    function getResultPhrase(score) {
+      if (score <= 3) return "AI пока работает без тебя. Пора познакомиться 👋";
+      if (score <= 5) return "Неплохое начало. Но ты ещё оставляешь AI без работы";
+      if (score <= 7) return "Ты думаешь правильно. Осталось довести до автопилота";
+      if (score <= 9) return "Сильно. Ты уже работаешь как киборг 🤖";
+      return "Идеально. Либо читал конспект, либо уже живёшь в будущем ⚡";
+    }
+
+    // ============================================================
+    // SHUFFLE
+    // ============================================================
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // ============================================================
+    // СОСТОЯНИЕ
+    // ============================================================
+    let gameCases = [];
+    let currentIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    // ============================================================
+    // СТАРТ
+    // ============================================================
+    function startGame() {
+      gameCases = shuffle(allCases).slice(0, 10);
+      currentIndex = 0;
+      score = 0;
+      showScreen('game');
+      showCase();
+    }
+
+    // ============================================================
+    // ПОКАЗАТЬ КЕЙС
+    // ============================================================
+    function showCase() {
+      answered = false;
+      closeDrawer();
+
+      const c = gameCases[currentIndex];
+      const progress = (currentIndex / 10) * 100;
+
+      document.getElementById('progress-fill').style.width = progress + '%';
+      document.getElementById('progress-label').textContent = (currentIndex + 1) + ' / 10';
+      document.getElementById('task-text').textContent = c.task;
+
+      const choicesEl = document.getElementById('choices');
+      choicesEl.innerHTML = '';
+      choiceOrder.forEach(key => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.setAttribute('data-key', key);
+        btn.innerHTML = `<span class="choice-emoji">${labels[key].emoji}</span><span class="choice-text">${labels[key].text}</span>`;
+        btn.addEventListener('click', () => handleAnswer(key));
+        choicesEl.appendChild(btn);
+      });
+
+      const card = document.getElementById('task-card');
+      card.classList.remove('animate-in');
+      // force reflow to restart animation
+      void card.offsetWidth;
+      card.classList.add('animate-in');
+    }
+
+    // ============================================================
+    // КЛИК НА КНОПКУ
+    // ============================================================
+    function handleAnswer(chosen) {
+      if (answered) return;
+      answered = true;
+
+      const correct = gameCases[currentIndex].correct;
+      const isCorrect = chosen === correct;
+
+      document.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.classList.add('disabled');
+      });
+
+      const chosenBtn = document.querySelector(`.choice-btn[data-key="${chosen}"]`);
+      chosenBtn.classList.remove('disabled');
+      chosenBtn.classList.add(isCorrect ? 'correct' : 'wrong');
+
+      if (!isCorrect) {
+        const correctBtn = document.querySelector(`.choice-btn[data-key="${correct}"]`);
+        correctBtn.classList.remove('disabled');
+        correctBtn.classList.add('correct');
+      }
+
+      const card = document.getElementById('task-card');
+      card.classList.add(isCorrect ? 'pulse' : 'shake');
+      setTimeout(() => card.classList.remove('pulse', 'shake'), 500);
+
+      if (isCorrect) score++;
+
+      const newProgress = ((currentIndex + 1) / 10) * 100;
+      document.getElementById('progress-fill').style.width = newProgress + '%';
+
+      setTimeout(() => {
+        openDrawer(isCorrect, gameCases[currentIndex].explain);
+      }, 350);
+    }
+
+    // ============================================================
+    // DRAWER
+    // ============================================================
+    function openDrawer(isCorrect, explain) {
+      const drawer = document.getElementById('drawer');
+      document.getElementById('drawer-status').textContent = isCorrect ? '✅ Правильно!' : '❌ Не совсем';
+      document.getElementById('drawer-explain').textContent = explain;
+      drawer.classList.add('open');
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawer').classList.remove('open');
+    }
+
+    // ============================================================
+    // СЛЕДУЮЩИЙ КЕЙС
+    // ============================================================
+    function nextCase() {
+      currentIndex++;
+      if (currentIndex < 10) {
+        showCase();
+      } else {
+        showResult();
+      }
+    }
+
+    // ============================================================
+    // РЕЗУЛЬТАТ
+    // ============================================================
+    function showResult() {
+      showScreen('result');
+
+      const scoreEl = document.getElementById('score-number');
+      scoreEl.style.animation = 'none';
+      void scoreEl.offsetWidth;
+      scoreEl.style.animation = 'countUp 0.6s cubic-bezier(0.22,1,0.36,1) forwards';
+
+      const duration = 600;
+      const start = performance.now();
+      function tick(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        scoreEl.textContent = Math.round(eased * score);
+        if (t < 1) requestAnimationFrame(tick);
+        else scoreEl.textContent = score;
+      }
+      requestAnimationFrame(tick);
+
+      const dotsEl = document.getElementById('result-dots');
+      dotsEl.innerHTML = '';
+      for (let i = 0; i < 10; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'dot' + (i < score ? ' correct' : ' wrong');
+        dotsEl.appendChild(dot);
+      }
+
+      document.getElementById('result-phrase').textContent = getResultPhrase(score);
+    }
+
+    // ============================================================
+    // ПЕРЕКЛЮЧЕНИЕ ЭКРАНОВ
+    // ============================================================
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+      const target = document.querySelector(`.screen-${name}`);
+      target.style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
