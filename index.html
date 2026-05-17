@@ -317,6 +317,10 @@
       background: #29A9E1;
       border-color: #29A9E1;
     }
+    .dot.wrong {
+      background: #E13329;
+      border-color: #E13329;
+    }
     .result-phrase {
       font-weight: 600;
       font-size: 20px;
@@ -558,6 +562,7 @@
     let currentIndex = 0;
     let score = 0;
     let answered = false;
+    let answerLog = [];
 
     // ============================================================
     // СТАРТ
@@ -566,6 +571,7 @@
       gameCases = shuffle(allCases).slice(0, 10);
       currentIndex = 0;
       score = 0;
+      answerLog = [];
       showScreen('game');
       showCase();
     }
@@ -633,6 +639,7 @@
       setTimeout(() => card.classList.remove('pulse', 'shake'), 500);
 
       if (isCorrect) score++;
+      answerLog.push(isCorrect);
 
       const newProgress = ((currentIndex + 1) / 10) * 100;
       document.getElementById('progress-fill').style.width = newProgress + '%';
@@ -692,11 +699,11 @@
 
       const dotsEl = document.getElementById('result-dots');
       dotsEl.innerHTML = '';
-      for (let i = 0; i < 10; i++) {
+      answerLog.forEach(ok => {
         const dot = document.createElement('span');
-        dot.className = 'dot' + (i < score ? ' correct' : ' wrong');
+        dot.className = 'dot ' + (ok ? 'correct' : 'wrong');
         dotsEl.appendChild(dot);
-      }
+      });
 
       document.getElementById('result-phrase').textContent = getResultPhrase(score);
     }
