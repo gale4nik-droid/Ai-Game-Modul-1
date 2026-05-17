@@ -577,6 +577,7 @@
       answered = false;
       closeDrawer();
       window.scrollTo(0, 0);
+      requestAnimationFrame(() => window.scrollTo(0, 0));
 
       const c = gameCases[currentIndex];
       const progress = (currentIndex / 10) * 100;
@@ -707,6 +708,7 @@
       document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
       const target = document.querySelector(`.screen-${name}`);
       target.style.display = 'flex';
+      window.scrollTo(0, 0);
     }
   </script>
 </body>
