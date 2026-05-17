@@ -66,11 +66,14 @@
       max-width: 400px;
       text-align: center;
     }
-    .start-emoji {
-      font-size: 88px;
-      line-height: 1;
-      margin-bottom: 24px;
+    .start-hero {
+      display: block;
+      width: 100%;
+      max-width: 260px;
+      height: auto;
+      margin: 0 auto 24px;
       animation: gentleFloat 6s ease-in-out infinite;
+      filter: drop-shadow(0 0 32px rgba(41, 169, 225, 0.3));
     }
     .start-inner h1 {
       font-weight: 900;
@@ -360,7 +363,7 @@
   <!-- START -->
   <div class="screen screen-start">
     <div class="start-inner">
-      <div class="start-emoji">🤖</div>
+      <img class="start-hero" src="hero.png" alt="" />
       <h1>AI или не AI?</h1>
       <p>10 задач. Для каждой выбери, кто справится лучше: <b>полностью ИИ</b>, <b>полностью ты</b> или <b>вы вместе</b>.</p>
       <button class="btn-primary" onclick="startGame()">Поехали →</button>
