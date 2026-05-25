@@ -188,6 +188,12 @@
       padding: 28px 24px;
       margin-bottom: 24px;
     }
+    .task-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
     .task-badge {
       display: inline-block;
       background: #29A9E1;
@@ -197,7 +203,10 @@
       letter-spacing: 0.06em;
       padding: 4px 10px;
       border-radius: 2px;
-      margin-bottom: 16px;
+    }
+    .task-icon {
+      font-size: 30px;
+      line-height: 1;
     }
     .task-quote {
       border-left: 4px solid #29A9E1;
@@ -331,17 +340,30 @@
       bottom: 0; left: 0; right: 0;
       background: #ffffff;
       border-top: 3px solid #0f1a1f;
-      padding: 24px 20px 40px;
-      transform: translateY(100%);
+      padding: 24px 20px;
+      padding-bottom: max(28px, env(safe-area-inset-bottom));
+      transform: translateY(110%);
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
       z-index: 100;
       max-width: 480px;
       margin: 0 auto;
       border-radius: 4px 4px 0 0;
       max-height: 85dvh;
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      pointer-events: none;
     }
-    .drawer.open { transform: translateY(0); }
+    .drawer.open {
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .drawer-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 16px;
+    }
     .drawer-status {
       font-weight: 700;
       font-size: 22px;
@@ -517,9 +539,12 @@
       <div class="progress-label" id="progress-label">1 / 10</div>
 
       <div class="card" id="task-card">
-        <span class="task-badge" id="task-badge">ЗАДАЧА</span>
+        <div class="task-head">
+          <span class="task-badge" id="task-badge">ЗАДАЧА</span>
+          <span class="task-icon" id="task-icon" style="display:none"></span>
+        </div>
         <div class="task-quote" id="task-quote" style="display:none">
-          <span class="quote-label">Промт</span>
+          <span class="quote-label">✍️ Промт</span>
           <span class="quote-text" id="quote-text"></span>
         </div>
         <p class="task-text" id="task-text"></p>
@@ -529,8 +554,10 @@
     </div>
 
     <div class="drawer" id="drawer">
-      <div class="drawer-status" id="drawer-status"></div>
-      <p class="drawer-explain" id="drawer-explain"></p>
+      <div class="drawer-scroll">
+        <div class="drawer-status" id="drawer-status"></div>
+        <p class="drawer-explain" id="drawer-explain"></p>
+      </div>
       <button class="btn-primary btn-dark" onclick="nextCase()">Дальше →</button>
     </div>
   </div>
@@ -604,7 +631,7 @@
         id: "m2",
         badge: "Модуль 2",
         title: "Промптинг и инструменты",
-        desc: "Промпты, ассистенты, ChatGPT, NotebookLM, Claude Projects.",
+        desc: "Промпты, персонализация, ассистенты и инструменты: ChatGPT, NotebookLM, Claude.",
         meta: "10 вопросов · 5 тем",
         taskBadge: "ВОПРОС",
         wrongLabel: "Неправильно",
@@ -660,12 +687,12 @@
             { text: "Нет конкретики — «глубоко» и «подробно» ничего не значат для AI" }
           ], correct: 3, explain: "«Глубоко», «хорошо», «красиво» — слова без операционного смысла. Замени на конкретику: «3 раздела по 200 слов», «с примерами», «разбери каждый пункт отдельно»." },
 
-          { quote: "Ты — HR. Напиши вакансию для менеджера по продажам", task: "Чего не хватает?", options: [
-            { text: "Роли" },
-            { text: "Ограничений — объём, стиль, что включать" },
-            { text: "Цели" },
-            { text: "Примера хорошей вакансии" }
-          ], correct: 1, explain: "Без ограничений AI напишет вакансию на 3 страницы со всеми стандартными разделами. Укажи: «до 300 слов», «без канцеляризмов», «акцент на результатах, не обязанностях»." },
+          { quote: "Ты — HR. Напиши вакансию для менеджера по продажам", task: "Чего здесь не хватает?", options: [
+            { text: "Только ограничения по объёму" },
+            { text: "Ничего, промт вполне рабочий" },
+            { text: "Контекста и конкретики: компания, условия, требования, формат" },
+            { text: "Более вежливой формулировки" }
+          ], correct: 2, explain: "Роль вроде есть, но дальше пусто: AI не знает ни компанию и продукт, ни условия (зарплата, формат работы), ни требования к кандидату, ни нужный объём и стиль. Чем важнее задача — тем больше контекста и конкретики. Иначе получишь шаблон из интернета, а не свою вакансию." },
 
           { task: "Тебе нужно быстро разобраться в сложной теме. Какой промт сработает лучше всего?", options: [
             { text: "«Дай определение и список источников»" },
@@ -832,6 +859,15 @@
     ];
 
     // ============================================================
+    // ТЕМАТИЧЕСКИЕ ИКОНКИ М2 (по порядку вопросов)
+    // ============================================================
+    const M2_ICONS = ["✍️","🧱","😈","🧩","❓","🌫️","📋","🧒","📣","🪄","⚙️","🧠","📁","🚗","📏","🤖","🔧","📚","🔁","🦾","📓","🎧","⚖️","🗄️","📄","🗂️","☕","🙌","🔒","🔗"];
+    (function () {
+      const m2 = MODULES.find(m => m.id === 'm2');
+      m2.questions.forEach((q, i) => { q.icon = M2_ICONS[i]; });
+    })();
+
+    // ============================================================
     // СОСТОЯНИЕ
     // ============================================================
     let currentModule = null;
@@ -887,7 +923,7 @@
           options = shuffle(options);
           correctIndex = options.indexOf(correctOpt);
         }
-        return { quote: q.quote || null, task: q.task, options, correctIndex, explain: q.explain };
+        return { quote: q.quote || null, icon: q.icon || null, task: q.task, options, correctIndex, explain: q.explain };
       });
     }
 
@@ -930,6 +966,14 @@
       document.getElementById('progress-fill').style.width = (currentIndex / total * 100) + '%';
       document.getElementById('progress-label').textContent = (currentIndex + 1) + ' / ' + total;
       document.getElementById('task-badge').textContent = currentModule.taskBadge;
+
+      const iconEl = document.getElementById('task-icon');
+      if (c.icon) {
+        iconEl.style.display = 'block';
+        iconEl.textContent = c.icon;
+      } else {
+        iconEl.style.display = 'none';
+      }
 
       const quoteEl = document.getElementById('task-quote');
       if (c.quote) {
@@ -1007,7 +1051,7 @@
 
       document.getElementById('progress-fill').style.width = ((currentIndex + 1) / gameCases.length * 100) + '%';
 
-      setTimeout(() => openDrawer(isCorrect, c.explain), 350);
+      setTimeout(() => openDrawer(isCorrect, c.explain), 280);
     }
 
     // ============================================================
@@ -1017,7 +1061,8 @@
       const drawer = document.getElementById('drawer');
       document.getElementById('drawer-status').textContent = isCorrect ? '✅ Правильно!' : '❌ ' + currentModule.wrongLabel;
       document.getElementById('drawer-explain').innerHTML = explain;
-      drawer.scrollTop = 0;
+      const scroll = drawer.querySelector('.drawer-scroll');
+      if (scroll) scroll.scrollTop = 0;
       drawer.classList.add('open');
     }
 
