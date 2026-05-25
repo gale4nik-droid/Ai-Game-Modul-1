@@ -35,7 +35,7 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    button { font-family: 'Inter', sans-serif; }
+    button { font-family: 'Inter', sans-serif; touch-action: manipulation; }
 
     /* === SCREENS === */
     .screen {
@@ -597,9 +597,9 @@
           { id: "together", text: "Вместе", emoji: "🤝", hint: "Я + ИИ" }
         ],
         resultPhrase: function(score) {
-          if (score <= 3) return "AI пока работает без тебя. Пора познакомиться 👋";
-          if (score <= 5) return "Неплохое начало. Но ты ещё оставляешь AI без работы";
-          if (score <= 7) return "Ты думаешь правильно. Осталось довести до автопилота";
+          if (score < 5) return "Материал ещё не уложился. Прогони его ещё раз, а если что-то непонятно — напиши Лёше за уточнениями 💬";
+          if (score <= 6) return "Неплохое начало. Но ты ещё оставляешь AI без работы";
+          if (score <= 8) return "Ты думаешь правильно. Осталось довести до автопилота";
           if (score <= 9) return "Сильно. Ты уже работаешь как киборг 🤖";
           return "Идеально. Либо читал конспект, либо уже живёшь в будущем ⚡";
         },
@@ -638,9 +638,9 @@
         pickCount: 10,
         shuffleOptions: true,
         resultPhrase: function(score) {
-          if (score <= 3) return "Промптинг пока на интуиции. Время освоить формулу 🧩";
-          if (score <= 5) return "База есть. Но AI выдаёт тебе не весь потенциал";
-          if (score <= 7) return "Хорошо чувствуешь инструменты. Осталось отточить детали";
+          if (score < 5) return "Тема ещё сырая. Прогони материал ещё раз, а если что-то непонятно — напиши Лёше за уточнениями 💬";
+          if (score <= 6) return "База есть. Но AI выдаёт тебе не весь потенциал";
+          if (score <= 8) return "Хорошо чувствуешь инструменты. Осталось отточить детали";
           if (score <= 9) return "Сильно. Ты выжимаешь из AI почти максимум 🚀";
           return "Идеально. Ты не просто пользуешься AI — ты им управляешь ⚡";
         },
@@ -1051,7 +1051,7 @@
 
       document.getElementById('progress-fill').style.width = ((currentIndex + 1) / gameCases.length * 100) + '%';
 
-      setTimeout(() => openDrawer(isCorrect, c.explain), 280);
+      setTimeout(() => openDrawer(isCorrect, c.explain), 200);
     }
 
     // ============================================================
