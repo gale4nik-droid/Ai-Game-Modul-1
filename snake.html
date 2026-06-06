@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Змейка — Обучение AI</title>
+  <meta name="description" content="Классическая игра «Змейка» в стиле проекта «Обучение AI».">
+  <meta name="theme-color" content="#0f1a1f">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* === BASE === */
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --dark:  #0f1a1f;
+      --white: #ffffff;
+      --blue:  #29A9E1;
+      --red:   #E13329;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background-color: #0f1a1f;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      color: #ffffff;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    button { font-family: 'Inter', sans-serif; touch-action: manipulation; cursor: pointer; }
+
+    .wrap {
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 20px 28px;
+    }
+
+    /* === HEADER === */
+    .top {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .back-link {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 0;
+    }
+    .back-link:active { color: #fff; }
+    h1 {
+      font-weight: 900;
+      font-size: 30px;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin: 6px 0 18px;
+      text-align: center;
+    }
+    h1 .accent { color: var(--blue); }
+
+    /* === SCORE BAR === */
+    .scorebar {
+      width: 100%;
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .score-box {
+      flex: 1;
+      background: #ffffff;
+      border: 3px solid #0f1a1f;
+      box-shadow: 4px 4px 0 #0f1a1f;
+      border-radius: 4px;
+      padding: 10px 14px;
+      color: #0f1a1f;
+    }
+    .score-box .label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(15,26,31,0.55);
+    }
+    .score-box .value {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+    .score-box.best .value { color: var(--blue); }
+
+    /* === BOARD === */
+    .board-wrap {
+      position: relative;
+      width: 100%;
+      border: 3px solid #0f1a1f;
+      box-shadow: 6px 6px 0 #0f1a1f;
+      border-radius: 4px;
+      background: #0b1418;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+
+    /* === OVERLAY === */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      background: rgba(15,26,31,0.86);
+      backdrop-filter: blur(2px);
+    }
+    .overlay.hidden { display: none; }
+    .overlay h2 {
+      font-size: 28px;
+      font-weight: 900;
+      margin: 0 0 8px;
+      letter-spacing: -0.01em;
+    }
+    .overlay p {
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.72);
+      margin: 0 0 22px;
+      max-width: 280px;
+      line-height: 1.45;
+    }
+    .overlay .final-score { color: var(--blue); font-weight: 800; }
+
+    /* === BUTTONS === */
+    .btn {
+      background: var(--blue);
+      color: #ffffff;
+      border: 3px solid #0f1a1f;
+      box-shadow: 4px 4px 0 #0f1a1f;
+      border-radius: 4px;
+      font-size: 17px;
+      font-weight: 800;
+      padding: 14px 28px;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #0f1a1f;
+    }
+    .btn.red { background: var(--red); }
+
+    /* === CONTROLS HINT === */
+    .hint {
+      margin-top: 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      line-height: 1.5;
+    }
+    .hint kbd {
+      display: inline-block;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* === D-PAD (mobile) === */
+    .dpad {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 56px);
+      grid-template-rows: repeat(3, 56px);
+      gap: 8px;
+      justify-content: center;
+    }
+    .dpad button {
+      background: #ffffff;
+      color: #0f1a1f;
+      border: 3px solid #0f1a1f;
+      box-shadow: 3px 3px 0 #0f1a1f;
+      border-radius: 4px;
+      font-size: 22px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dpad button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 #0f1a1f;
+    }
+    .dpad .up    { grid-column: 2; grid-row: 1; }
+    .dpad .left  { grid-column: 1; grid-row: 2; }
+    .dpad .down  { grid-column: 2; grid-row: 3; }
+    .dpad .right { grid-column: 3; grid-row: 2; }
+
+    @media (min-width: 560px) {
+      .dpad { display: none; }
+    }
+    @media (max-width: 559px) {
+      .hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <button class="back-link" id="back-btn">← На главную</button>
+    </div>
+
+    <h1>🐍 <span class="accent">Змейка</span></h1>
+
+    <div class="scorebar">
+      <div class="score-box">
+        <span class="label">Счёт</span>
+        <span class="value" id="score">0</span>
+      </div>
+      <div class="score-box best">
+        <span class="label">Рекорд</span>
+        <span class="value" id="best">0</span>
+      </div>
+    </div>
+
+    <div class="board-wrap">
+      <canvas id="board"></canvas>
+      <div class="overlay" id="overlay">
+        <h2 id="ov-title">Готовы?</h2>
+        <p id="ov-text">Собирайте яблоки и растите. Не врезайтесь в стены и в себя.</p>
+        <button class="btn" id="ov-btn">Играть</button>
+      </div>
+    </div>
+
+    <div class="dpad">
+      <button class="up"    data-dir="up"    aria-label="Вверх">▲</button>
+      <button class="left"  data-dir="left"  aria-label="Влево">◀</button>
+      <button class="down"  data-dir="down"  aria-label="Вниз">▼</button>
+      <button class="right" data-dir="right" aria-label="Вправо">▶</button>
+    </div>
+
+    <p class="hint">
+      Управление: <kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> или <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd><br>
+      Пауза — <kbd>Space</kbd>. На телефоне — свайпы или кнопки.
+    </p>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var GRID = 17;               // клеток по стороне
+    var BASE_SPEED = 140;        // мс на шаг в начале
+    var MIN_SPEED = 70;          // минимальный интервал (максимальная скорость)
+    var SPEED_STEP = 4;          // ускорение за съеденное яблоко
+
+    var canvas = document.getElementById('board');
+    var ctx = canvas.getContext('2d');
+    var scoreEl = document.getElementById('score');
+    var bestEl = document.getElementById('best');
+    var overlay = document.getElementById('overlay');
+    var ovTitle = document.getElementById('ov-title');
+    var ovText = document.getElementById('ov-text');
+    var ovBtn = document.getElementById('ov-btn');
+
+    var cell = 0;                // размер клетки в пикселях (после ресайза)
+    var snake, dir, nextDir, food, score, speed, alive, started, paused, loopId;
+    var best = +(localStorage.getItem('snake_best') || 0);
+    bestEl.textContent = best;
+
+    // === Адаптация под физический размер с учётом DPR ===
+    function resize() {
+      var rect = canvas.getBoundingClientRect();
+      var size = Math.min(rect.width, rect.height);
+      var dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(size * dpr);
+      canvas.height = Math.round(size * dpr);
+      cell = canvas.width / GRID;
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    function reset() {
+      snake = [
+        { x: 8, y: 8 },
+        { x: 7, y: 8 },
+        { x: 6, y: 8 }
+      ];
+      dir = { x: 1, y: 0 };
+      nextDir = { x: 1, y: 0 };
+      score = 0;
+      speed = BASE_SPEED;
+      alive = true;
+      paused = false;
+      scoreEl.textContent = '0';
+      placeFood();
+    }
+
+    function placeFood() {
+      var free = [];
+      for (var y = 0; y < GRID; y++) {
+        for (var x = 0; x < GRID; x++) {
+          var onSnake = false;
+          for (var i = 0; i < snake.length; i++) {
+            if (snake[i].x === x && snake[i].y === y) { onSnake = true; break; }
+          }
+          if (!onSnake) free.push({ x: x, y: y });
+        }
+      }
+      if (!free.length) { win(); return; }
+      food = free[Math.floor(Math.random() * free.length)];
+    }
+
+    function step() {
+      if (!alive || paused) return;
+
+      dir = nextDir;
+      var head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+      // столкновение со стеной
+      if (head.x < 0 || head.x >= GRID || head.y < 0 || head.y >= GRID) {
+        return gameOver();
+      }
+      // столкновение с собой (хвост уедет, но проверяем по текущему телу без последнего сегмента)
+      for (var i = 0; i < snake.length - 1; i++) {
+        if (snake[i].x === head.x && snake[i].y === head.y) {
+          return gameOver();
+        }
+      }
+
+      snake.unshift(head);
+
+      if (food && head.x === food.x && head.y === food.y) {
+        score++;
+        scoreEl.textContent = score;
+        if (score > best) {
+          best = score;
+          bestEl.textContent = best;
+          localStorage.setItem('snake_best', best);
+        }
+        speed = Math.max(MIN_SPEED, speed - SPEED_STEP);
+        placeFood();
+        restartLoop();
+      } else {
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    function restartLoop() {
+      clearInterval(loopId);
+      loopId = setInterval(step, speed);
+    }
+
+    function draw() {
+      if (!ctx) return;
+      var W = canvas.width;
+      // фон
+      ctx.fillStyle = '#0b1418';
+      ctx.fillRect(0, 0, W, W);
+
+      // сетка
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1;
+      for (var g = 1; g < GRID; g++) {
+        ctx.beginPath();
+        ctx.moveTo(g * cell, 0); ctx.lineTo(g * cell, W); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, g * cell); ctx.lineTo(W, g * cell); ctx.stroke();
+      }
+
+      // еда (яблоко)
+      if (food) {
+        drawCell(food.x, food.y, '#E13329', 0.18);
+      }
+
+      // змейка
+      if (snake) {
+        for (var i = snake.length - 1; i >= 0; i--) {
+          var isHead = i === 0;
+          drawCell(snake[i].x, snake[i].y, isHead ? '#29A9E1' : '#1f8dbd', 0.12);
+          if (isHead) drawEyes(snake[i]);
+        }
+      }
+    }
+
+    function drawCell(x, y, color, padRatio) {
+      var pad = cell * padRatio;
+      var r = Math.min(cell * 0.28, 8 * (canvas.width / 480));
+      var px = x * cell + pad, py = y * cell + pad, s = cell - pad * 2;
+      ctx.fillStyle = color;
+      roundRect(px, py, s, s, r);
+      ctx.fill();
+    }
+
+    function drawEyes(head) {
+      var cx = head.x * cell + cell / 2;
+      var cy = head.y * cell + cell / 2;
+      var off = cell * 0.18;
+      var rr = Math.max(1.5, cell * 0.07);
+      ctx.fillStyle = '#0f1a1f';
+      var ex = dir.y !== 0 ? off : off * dir.x * 0.6 + (dir.x === 0 ? 0 : off * 0.4 * dir.x);
+      // простые два глаза, смещённые по направлению движения
+      var dxp = dir.x * cell * 0.12;
+      var dyp = dir.y * cell * 0.12;
+      var perpX = dir.y !== 0 ? off : 0;
+      var perpY = dir.x !== 0 ? off : 0;
+      ctx.beginPath();
+      ctx.arc(cx + dxp + perpX, cy + dyp + perpY, rr, 0, Math.PI * 2);
+      ctx.arc(cx + dxp - perpX, cy + dyp - perpY, rr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function roundRect(x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    // === Управление направлением ===
+    function setDir(nx, ny) {
+      if (!alive) return;
+      // запрет разворота на 180°
+      if (nx === -dir.x && ny === -dir.y) return;
+      // запрет двойной смены до следующего шага
+      if (nx === dir.x && ny === dir.y) return;
+      nextDir = { x: nx, y: ny };
+    }
+
+    var DIRS = {
+      up:    [0, -1],
+      down:  [0, 1],
+      left:  [-1, 0],
+      right: [1, 0]
+    };
+
+    function handleDirName(name) {
+      var d = DIRS[name];
+      if (d) setDir(d[0], d[1]);
+    }
+
+    // клавиатура
+    window.addEventListener('keydown', function (e) {
+      var k = e.key.toLowerCase();
+      if (k === 'arrowup' || k === 'w') { handleDirName('up'); e.preventDefault(); }
+      else if (k === 'arrowdown' || k === 's') { handleDirName('down'); e.preventDefault(); }
+      else if (k === 'arrowleft' || k === 'a') { handleDirName('left'); e.preventDefault(); }
+      else if (k === 'arrowright' || k === 'd') { handleDirName('right'); e.preventDefault(); }
+      else if (k === ' ') { togglePause(); e.preventDefault(); }
+      else if (k === 'enter' && (!started || !alive)) { startGame(); }
+    });
+
+    // d-pad
+    document.querySelectorAll('.dpad button').forEach(function (b) {
+      b.addEventListener('click', function () { handleDirName(b.dataset.dir); });
+    });
+
+    // свайпы
+    var tStartX = 0, tStartY = 0;
+    canvas.addEventListener('touchstart', function (e) {
+      var t = e.changedTouches[0];
+      tStartX = t.clientX; tStartY = t.clientY;
+    }, { passive: true });
+    canvas.addEventListener('touchend', function (e) {
+      var t = e.changedTouches[0];
+      var dx = t.clientX - tStartX, dy = t.clientY - tStartY;
+      if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+      if (Math.abs(dx) > Math.abs(dy)) handleDirName(dx > 0 ? 'right' : 'left');
+      else handleDirName(dy > 0 ? 'down' : 'up');
+    }, { passive: true });
+
+    // === Состояния игры ===
+    function startGame() {
+      reset();
+      started = true;
+      overlay.classList.add('hidden');
+      restartLoop();
+      draw();
+    }
+
+    function togglePause() {
+      if (!started || !alive) return;
+      paused = !paused;
+      if (paused) {
+        clearInterval(loopId);
+        showOverlay('Пауза', 'Нажмите, чтобы продолжить.', 'Продолжить', resumeGame);
+      } else {
+        overlay.classList.add('hidden');
+        restartLoop();
+      }
+    }
+
+    function resumeGame() {
+      paused = false;
+      overlay.classList.add('hidden');
+      restartLoop();
+    }
+
+    function gameOver() {
+      alive = false;
+      clearInterval(loopId);
+      draw();
+      var msg = score >= 10
+        ? 'Отличный результат! Съедено яблок: '
+        : 'Съедено яблок: ';
+      showOverlay(
+        'Игра окончена',
+        msg + score + (score === best && score > 0 ? ' — это рекорд! 🏆' : ''),
+        'Сыграть ещё',
+        startGame
+      );
+    }
+
+    function win() {
+      alive = false;
+      clearInterval(loopId);
+      draw();
+      showOverlay('Победа! 🎉', 'Вы заполнили всё поле. Это максимум!', 'Заново', startGame);
+    }
+
+    function showOverlay(title, text, btnText, onClick) {
+      ovTitle.textContent = title;
+      ovText.innerHTML = text;
+      ovBtn.textContent = btnText;
+      ovBtn.onclick = onClick;
+      overlay.classList.remove('hidden');
+    }
+
+    // кнопка «на главную»
+    document.getElementById('back-btn').addEventListener('click', function () {
+      window.location.href = 'index.html';
+    });
+
+    // стартовый оверлей
+    ovBtn.onclick = startGame;
+
+    // init
+    started = false;
+    alive = false;
+    snake = [{ x: 8, y: 8 }];
+    dir = { x: 1, y: 0 };
+    resize();
+  })();
+  </script>
+</body>
+</html>
